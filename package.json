@@ -1,0 +1,24 @@
+{
+  "name": "TrueSource",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/ducdat0402/TrueSource.git",
+  "author": "ducdat0402 <leducdat0402@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "contracts"
+  ],
+  "devDependencies": {
+    "lerna": "^9.0.0"
+  },
+  "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "start:backend": "yarn workspace backend start",
+    "start:frontend": "yarn workspace frontend start",
+    "test:backend": "yarn workspace backend test",
+    "test:frontend": "yarn workspace frontend test"
+  }
+}
