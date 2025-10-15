@@ -1,0 +1,10 @@
+- express: Framework API RESTful – Lý do: Đơn giản, nhanh để build routes (ví dụ: /api/products/trace), ví dụ bạn đưa.
+- web3: Kết nối Ethereum blockchain – Lý do: Gọi smart contracts (deploy, call functions như getHistory).
+- mongoose: ORM cho MongoDB – Lý do: Define schemas (từ thiết kế trước), query dễ (tích hợp referencing/embedding).
+- redis: Client cho Redis (ioredis hoặc redis) – Lý do: Caching dữ liệu traceability để giảm tải blockchain.
+- amqplib: Client cho RabbitMQ – Lý do: Message queue real-time (gửi notifications khi event blockchain emit).
+- axios: HTTP client – Lý do: Gọi API AI (Hugging Face hoặc TensorFlow.js endpoint).
+- jsonwebtoken (jwt): Authentication – Lý do: JWT cho user auth, phân quyền.
+- qrcode: Generate QR codes – Lý do: Tạo QR cho products.
+- dotenv: Load .env – Lý do: Quản lý secrets (API keys, DB URL).
+- jest: Testing – Lý do: Unit test API.

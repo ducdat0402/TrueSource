@@ -72,3 +72,57 @@ Dự án phải được triển khai theo các bước sau để đảm bảo t
 - Hệ thống chạy ổn định qua Docker, không lỗi khi deploy.
 - Tài liệu đầy đủ: Report 20-30 trang, bao gồm mã nguồn, diagram, và lessons learned.
 - Demo: Chạy thực tế, chứng minh tích hợp AI và blockchain.
+
+
+TrueSource/  # Root folder dự án
+├── backend/  # Backend Node.js (API, kết nối blockchain, database, AI)
+│   ├── src/  # Source code chính
+│   │   ├── controllers/  # Logic API (ví dụ: productController.js cho traceability)
+│   │   ├── models/  # Models MongoDB (Mongoose schemas, ví dụ: productModel.js)
+│   │   ├── routes/  # Routes Express (ví dụ: productRoutes.js)
+│   │   ├── services/  # Services (ví dụ: blockchainService.js cho Web3.js, aiService.js cho Hugging Face)
+│   │   ├── utils/  # Utilities (ví dụ: errorHandler.js, qrGenerator.js)
+│   │   └── app.js  # Entry point (setup Express server)
+│   ├── config/  # Config files
+│   │   ├── db.js  # Kết nối MongoDB
+│   │   ├── redis.js  # Kết nối Redis
+│   │   └── rabbitmq.js  # Kết nối RabbitMQ
+│   ├── tests/  # Unit/integration tests (ví dụ: product.test.js dùng Jest)
+│   ├── .env  # Environment variables (DB_URL, ETH_RPC, AI_API_KEY)
+│   ├── Dockerfile  # Docker cho backend (build Node.js image)
+│   ├── package.json  # Dependencies (Express, Mongoose, v.v.)
+│   └── README.md  # Hướng dẫn backend
+├── frontend/  # Frontend React.js (UI cho truy vết, quét QR)
+│   ├── src/  # Source code
+│   │   ├── components/  # Components (ví dụ: QRScanner.js, TraceDashboard.js)
+│   │   ├── pages/  # Pages (ví dụ: Home.js, ProductTrace.js)
+│   │   ├── services/  # API calls (ví dụ: api.js dùng Axios)
+│   │   ├── utils/  # Utilities (ví dụ: auth.js)
+│   │   └── App.js  # Entry point React
+│   ├── public/  # Static files (index.html, favicon)
+│   ├── tests/  # Tests (ví dụ: component.test.js dùng Jest)
+│   ├── .env  # Env vars (REACT_APP_API_URL)
+│   ├── Dockerfile  # Docker cho frontend (build React image)
+│   ├── package.json  # Dependencies (React, Axios, v.v.)
+│   └── README.md  # Hướng dẫn frontend
+├── contracts/  # Smart contracts Solidity (blockchain core)
+│   ├── contracts/  # Source contracts (ví dụ: TrueSource.sol)
+│   ├── scripts/  # Deploy scripts (ví dụ: deploy.js dùng Hardhat)
+│   ├── test/  # Tests (ví dụ: TrueSource.test.js dùng Mocha/Chai)
+│   ├── hardhat.config.js  # Config Hardhat (networks, solidity version)
+│   ├── package.json  # Dependencies (Hardhat, OpenZeppelin)
+│   └── README.md  # Hướng dẫn contracts
+├── docs/  # Tài liệu dự án (từ Tuần 1-2)
+│   ├── requirements.md  # Yêu cầu hệ thống
+│   ├── dataDesign.md  # ERD, schemas (MongoDB)
+│   ├── securityPlan.md  # Kế hoạch bảo mật
+│   └── diagrams/  # PNG files (ERD, flowcharts)
+├── docker/  # Docker configs (cho deploy)
+│   ├── docker-compose.yml  # Orchestrate services (backend, frontend, mongo, redis, rabbitmq)
+│   └── .env  # Docker env vars
+├── ci-cd/  # CI/CD configs (GitHub Actions)
+│   └── .github/workflows/  # Workflows (ví dụ: build-deploy.yml cho test/build/deploy)
+├── .gitignore  # Ignore node_modules, .env, build files
+├── package.json  # Root dependencies (nếu dùng Lerna/Yarn Workspaces cho monorepo)
+├── README.md  # Tổng quan dự án, cách run (docker-compose up)
+└── .env.example  # Template env vars

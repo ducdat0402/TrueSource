@@ -1,0 +1,69 @@
+# Dependencies (hoisted ở root bởi Yarn/Lerna)
+node_modules/
+.pnp
+.pnp.js
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build/Output files (cho frontend/backend/contracts)
+dist/
+build/
+.out/
+coverage/
+*.min.js
+*.bundle.js
+
+# Logs và Temp files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pytest_cache/
+*.tmp
+temp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testing/Cache
+.cache
+jest-cache/
+cypress/downloads/
+
+# Hardhat/Contracts specific (cho contracts/)
+cache/
+artifacts/
+typechain/
+hardhat.config.ts (nếu sensitive)
+
+# Docker (nếu có images/build temp)
+docker/build/
+
+# Misc
+*.bak
+*.gho
+*.ori
+*.orig
+*.tmp
+
+# Nếu dùng Mac/Linux specific
+*~
+*.swp
+*.swo
