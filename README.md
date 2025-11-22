@@ -123,6 +123,41 @@ TrueSource/  # Root folder dự án
 ├── ci-cd/  # CI/CD configs (GitHub Actions)
 │   └── .github/workflows/  # Workflows (ví dụ: build-deploy.yml cho test/build/deploy)
 ├── .gitignore  # Ignore node_modules, .env, build files
-├── package.json  # Root dependencies (nếu dùng Lerna/Yarn Workspaces cho monorepo)
+├── package.json  # Root dependencies (sử dụng npm cho monorepo)
 ├── README.md  # Tổng quan dự án, cách run (docker-compose up)
+
+## Cách sử dụng
+
+### Cài đặt dependencies
+```bash
+# Cài đặt tất cả dependencies cho root, backend và frontend
+npm run install:all
+
+# Hoặc cài đặt từng phần riêng lẻ
+npm install                    # Root dependencies
+cd backend && npm install     # Backend dependencies  
+cd frontend && npm install    # Frontend dependencies
+```
+
+### Chạy ứng dụng
+```bash
+# Chạy backend (port 5000)
+npm run start:backend
+
+# Chạy frontend (port 3000) 
+npm run start:frontend
+
+# Chạy tests
+npm run test:backend
+npm run test:frontend
+
+# Build cho production
+npm run build:frontend
+npm run build:backend
+```
+
+### Chạy với Docker
+```bash
+docker-compose up
+```
 └── .env.example  # Template env vars

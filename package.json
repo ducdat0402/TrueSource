@@ -6,19 +6,21 @@
   "author": "ducdat0402 <leducdat0402@gmail.com>",
   "license": "MIT",
   "private": true,
-  "workspaces": [
-    "backend",
-    "frontend",
-    "contracts"
-  ],
   "devDependencies": {
-    "lerna": "^9.0.0"
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.0",
+    "hardhat": "^3.0.9",
+    "typescript": "^5.9.3",
+    "viem": "^2.38.5"
   },
   "scripts": {
-    "bootstrap": "lerna bootstrap",
-    "start:backend": "yarn workspace backend start",
-    "start:frontend": "yarn workspace frontend start",
-    "test:backend": "yarn workspace backend test",
-    "test:frontend": "yarn workspace frontend test"
-  }
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "start": "node index.js"
+  },
+  "type": "module"
 }
