@@ -4,15 +4,18 @@
   "main": "src/app.js",
   "license": "MIT",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "nodemon src/app.js",
+    "start": "nodemon src/app.js",
     "test": "jest",
+    "test:contract": "node scripts/test-contract.js",
+    "test:api": "node scripts/test-api.js",
     "build": "echo 'Backend build completed'"
   },
   "dependencies": {
     "amqplib": "^0.10.9",
-    "axios": "^1.12.2",
+    "axios": "^1.13.2",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^17.2.3",
+    "ethers": "^6.15.0",
     "express": "^5.1.0",
     "ioredis": "^5.8.1",
     "jsonwebtoken": "^9.0.2",
@@ -22,6 +25,7 @@
   },
   "devDependencies": {
     "jest": "^30.2.0",
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "supertest": "^7.0.0"
   }
 }
