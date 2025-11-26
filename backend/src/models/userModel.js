@@ -28,6 +28,12 @@ const UserSchema = new mongoose.Schema({
   walletAddress: {
     type: String,
     default: null
+    // Wallet address không bắt buộc khi đăng ký, sẽ được thêm khi đăng ký xác thực
+  },
+  verificationStatus: {
+    type: String,
+    enum: ['unverified', 'pending', 'verified', 'rejected'],
+    default: 'unverified'
   }
 }, {
   timestamps: true

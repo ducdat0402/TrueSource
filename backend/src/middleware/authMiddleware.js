@@ -53,8 +53,42 @@ const authorize = (...roles) => {
   };
 };
 
+/**
+ * Middleware để kiểm tra producer đã được xác thực chưa
+ * Chỉ áp dụng cho producer, admin thì bỏ qua
+ */
+function requireVerifiedProducer(req, res, next) {
+  if (req.user.role === 'admin') {
+    return next(); // Admin không cần verification
+  }
+
+  if (req.user.role === 'producer') {
+    if (req.user.verificationStatus === 'verified') {
+      return next();
+    } else if (req.user.verificationStatus === 'pending') {
+      return res.status(403).json({ 
+        error: 'Tài khoản của bạn đang chờ admin duyệt. Vui lòng đợi.',
+        verificationStatus: 'pending'
+      });
+    } else if (req.user.verificationStatus === 'rejected') {
+      return res.status(403).json({ 
+        error: 'Đơn xác thực của bạn đã bị từ chối. Vui lòng đăng ký lại.',
+        verificationStatus: 'rejected'
+      });
+    } else {
+      return res.status(403).json({ 
+        error: 'Bạn cần đăng ký xác thực producer trước khi sử dụng tính năng này.',
+        verificationStatus: 'unverified'
+      });
+    }
+  }
+
+  return next();
+}
+
 module.exports = {
   authenticate,
-  authorize
+  authorize,
+  requireVerifiedProducer
 };
 

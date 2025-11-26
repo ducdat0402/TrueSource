@@ -16,6 +16,8 @@ contract TrueSource is AccessControl {
     struct Product {
         uint id;
         string origin;
+        string productName;
+        string category;
         uint createdAt;
         string currentStatus;
         Event[] events;
@@ -34,11 +36,13 @@ contract TrueSource is AccessControl {
         _grantRole(PRODUCER_ROLE, msg.sender);
     }
 
-    function addProduct(string memory _origin, string memory _qrHash) public onlyRole(PRODUCER_ROLE) {
+    function addProduct(string memory _origin, string memory _productName, string memory _category, string memory _qrHash) public onlyRole(PRODUCER_ROLE) {
         productCounter++;
         Product storage p = products[productCounter];
         p.id = productCounter;
         p.origin = _origin;
+        p.productName = _productName;
+        p.category = _category;
         p.createdAt = block.timestamp;
         p.currentStatus = "Created";
         p.qrCodeHash = _qrHash;
