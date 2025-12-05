@@ -439,6 +439,77 @@ async function triggerAIAnalysis(req, res) {
 }
 
 /**
+ * GET /admin/anomalies
+ * Get products with anomalies detected
+ */
+async function getAnomalies(req, res) {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const severity = req.query.severity; // 'high', 'medium', 'low'
+    const skip = (page - 1) * limit;
+
+    const matchQuery = {
+      aiResults: { $exists: true, $ne: {} }
+    };
+
+    const products = await Product.find(matchQuery)
+      .sort({ id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // Filter products with anomalies
+    const productsWithAnomalies = products
+      .map(product => {
+        const aiResults = product.aiResults || {};
+        const latestAI = Object.values(aiResults)
+          .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))[0];
+        
+        if (!latestAI || !latestAI.anomalies || latestAI.anomalies.length === 0) {
+          return null;
+        }
+
+        // Filter by severity if specified
+        if (severity && latestAI.severity !== severity) {
+          return null;
+        }
+
+        return {
+          id: product.id,
+          productName: product.productName,
+          origin: product.origin,
+          currentStatus: product.currentStatus,
+          anomalyScore: latestAI.anomalyScore,
+          severity: latestAI.severity,
+          authenticity: latestAI.authenticity,
+          anomalyCount: latestAI.anomalies.length,
+          anomalies: latestAI.anomalies.slice(0, 3), // Show first 3
+          timestamp: latestAI.timestamp
+        };
+      })
+      .filter(p => p !== null)
+      .sort((a, b) => (b.anomalyScore || 0) - (a.anomalyScore || 0));
+
+    const total = productsWithAnomalies.length;
+
+    res.json({
+      success: true,
+      anomalies: productsWithAnomalies,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error getting anomalies:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
  * GET /admin/ai-results
  * View AI logs and results
  */
@@ -643,6 +714,32 @@ async function exportProducts(req, res) {
   }
 }
 
+/**
+ * POST /admin/ai/retrain
+ * Retrain ML model với dữ liệu mới nhất
+ */
+async function retrainMLModel(req, res) {
+  try {
+    const aiService = require('../services/aiService');
+    const success = await aiService.retrainMLModel();
+    
+    if (success) {
+      res.json({
+        success: true,
+        message: 'ML model đã được retrain thành công'
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Retrain thất bại hoặc không đủ dữ liệu (cần ít nhất 10 samples)'
+      });
+    }
+  } catch (error) {
+    console.error('Error retraining ML model:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   listUsers,
   grantRole,
@@ -652,6 +749,8 @@ module.exports = {
   softDeleteProduct,
   bulkUpdateProducts,
   triggerAIAnalysis,
+  retrainMLModel,
+  getAnomalies,
   getAIResults,
   getLogs,
   getAnalytics,

@@ -34,7 +34,7 @@ function AdminDashboard() {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [realtimeUpdates, setRealtimeUpdates] = useState([]);
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' or 'verifications'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'verifications', or 'ai-analysis'
   const [pendingVerifications, setPendingVerifications] = useState([]);
   const [loadingVerifications, setLoadingVerifications] = useState(false);
   const [selectedVerification, setSelectedVerification] = useState(null);
@@ -45,6 +45,13 @@ function AdminDashboard() {
   const [showLicenseModal, setShowLicenseModal] = useState(false);
   const [selectedLicense, setSelectedLicense] = useState(null);
   const [popup, setPopup] = useState({ show: false, message: '', type: 'success' });
+  // AI Analysis states
+  const [anomalies, setAnomalies] = useState([]);
+  const [loadingAnomalies, setLoadingAnomalies] = useState(false);
+  const [anomalyPage, setAnomalyPage] = useState(1);
+  const [anomalySeverity, setAnomalySeverity] = useState('');
+  const [triggerProductId, setTriggerProductId] = useState('');
+  const [triggeringAI, setTriggeringAI] = useState(false);
   const navigate = useNavigate();
 
   // Function to show popup
@@ -101,8 +108,10 @@ function AdminDashboard() {
   useEffect(() => {
     if (activeTab === 'verifications') {
       loadPendingVerifications();
+    } else if (activeTab === 'ai-analysis') {
+      loadAnomalies();
     }
-  }, [activeTab]);
+  }, [activeTab, anomalyPage, anomalySeverity]);
 
   const loadData = async () => {
     try {
@@ -185,6 +194,41 @@ function AdminDashboard() {
     }
   };
 
+  // AI Analysis functions
+  const loadAnomalies = async () => {
+    setLoadingAnomalies(true);
+    try {
+      const response = await adminAPI.getAnomalies(anomalyPage, 20, anomalySeverity);
+      setAnomalies(response.data.anomalies || []);
+    } catch (error) {
+      console.error('Error loading anomalies:', error);
+      showPopup('Lỗi khi tải danh sách anomalies: ' + (error.response?.data?.error || error.message), 'error');
+    } finally {
+      setLoadingAnomalies(false);
+    }
+  };
+
+  const handleTriggerAI = async () => {
+    if (!triggerProductId || !triggerProductId.trim()) {
+      showPopup('Vui lòng nhập Product ID', 'error');
+      return;
+    }
+
+    setTriggeringAI(true);
+    try {
+      const response = await adminAPI.triggerAIAnalysis(parseInt(triggerProductId));
+      showPopup('Phân tích AI hoàn thành! Anomaly Score: ' + (response.data.aiResult?.anomalyScore || 0), 'success');
+      setTriggerProductId('');
+      loadAnomalies(); // Reload anomalies list
+      loadCharts(); // Reload charts
+    } catch (error) {
+      console.error('Error triggering AI analysis:', error);
+      showPopup('Lỗi khi phân tích: ' + (error.response?.data?.error || error.message), 'error');
+    } finally {
+      setTriggeringAI(false);
+    }
+  };
+
   const openApproveModal = (verification) => {
     setSelectedVerification(verification);
     setAdminNotes('');
@@ -251,6 +295,12 @@ function AdminDashboard() {
                 <span className="badge">{pendingVerifications.length}</span>
               )}
             </button>
+            <button 
+              className={activeTab === 'ai-analysis' ? 'active' : ''}
+              onClick={() => setActiveTab('ai-analysis')}
+            >
+              🔍 AI Analysis
+            </button>
           </div>
           <button onClick={() => {
             localStorage.removeItem('token');
@@ -260,7 +310,153 @@ function AdminDashboard() {
       </header>
 
       <div className="dashboard-content">
-        {activeTab === 'verifications' ? (
+        {activeTab === 'ai-analysis' ? (
+          <div className="ai-analysis-section">
+            <div className="section-header">
+              <h2>🔍 Phân Tích AI & Phát Hiện Bất Thường</h2>
+              <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
+                <input
+                  type="number"
+                  placeholder="Product ID"
+                  value={triggerProductId}
+                  onChange={(e) => setTriggerProductId(e.target.value)}
+                  style={{
+                    padding: '0.5rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(0, 150, 255, 0.3)',
+                    background: 'rgba(10, 14, 39, 0.8)',
+                    color: '#ffffff',
+                    width: '150px'
+                  }}
+                />
+                <button 
+                  onClick={handleTriggerAI}
+                  disabled={triggeringAI}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'linear-gradient(135deg, #0096ff 0%, #0066ff 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: '600'
+                  }}
+                >
+                  {triggeringAI ? 'Đang phân tích...' : 'Trigger AI Analysis'}
+                </button>
+                <button onClick={loadAnomalies} disabled={loadingAnomalies}>
+                  {loadingAnomalies ? 'Đang tải...' : 'Làm mới'}
+                </button>
+              </div>
+            </div>
+
+            <div style={{marginBottom: '1rem', display: 'flex', gap: '0.5rem'}}>
+              <button
+                onClick={() => setAnomalySeverity('')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: anomalySeverity === '' ? 'linear-gradient(135deg, #0096ff 0%, #0066ff 100%)' : 'rgba(10, 14, 39, 0.6)',
+                  color: 'white',
+                  border: '1px solid rgba(0, 150, 255, 0.3)',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Tất cả
+              </button>
+              <button
+                onClick={() => setAnomalySeverity('high')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: anomalySeverity === 'high' ? 'linear-gradient(135deg, #ff6b6b 0%, #dc3545 100%)' : 'rgba(10, 14, 39, 0.6)',
+                  color: 'white',
+                  border: '1px solid rgba(255, 107, 107, 0.3)',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                High Risk
+              </button>
+              <button
+                onClick={() => setAnomalySeverity('medium')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: anomalySeverity === 'medium' ? 'linear-gradient(135deg, #ffc107 0%, #ff9800 100%)' : 'rgba(10, 14, 39, 0.6)',
+                  color: 'white',
+                  border: '1px solid rgba(255, 193, 7, 0.3)',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Medium Risk
+              </button>
+              <button
+                onClick={() => setAnomalySeverity('low')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: anomalySeverity === 'low' ? 'linear-gradient(135deg, #00d4ff 0%, #0096ff 100%)' : 'rgba(10, 14, 39, 0.6)',
+                  color: 'white',
+                  border: '1px solid rgba(0, 212, 255, 0.3)',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Low Risk
+              </button>
+            </div>
+
+            {loadingAnomalies ? (
+              <div className="loading">Đang tải danh sách anomalies...</div>
+            ) : anomalies.length === 0 ? (
+              <div className="empty-state">
+                <p>Không có anomalies nào được phát hiện</p>
+                <p style={{fontSize: '0.9em', color: 'rgba(255, 255, 255, 0.7)', marginTop: '0.5rem'}}>
+                  Thử trigger AI analysis cho một sản phẩm để xem kết quả
+                </p>
+              </div>
+            ) : (
+              <div className="anomalies-list">
+                {anomalies.map((anomaly) => (
+                  <div key={anomaly.id} className="anomaly-card">
+                    <div className="anomaly-header">
+                      <div>
+                        <h3>Sản phẩm #{anomaly.id}</h3>
+                        <p style={{margin: '0.25rem 0', color: 'rgba(255, 255, 255, 0.7)'}}>
+                          {anomaly.productName || 'Chưa có tên'} - {anomaly.origin}
+                        </p>
+                      </div>
+                      <div style={{textAlign: 'right'}}>
+                        <div className={`anomaly-score anomaly-${anomaly.severity}`}>
+                          Score: {anomaly.anomalyScore}/100
+                        </div>
+                        <span className={`authenticity-badge authenticity-${anomaly.authenticity?.toLowerCase()}`}>
+                          {anomaly.authenticity === 'Verified' ? '✅ Verified' : 
+                           anomaly.authenticity === 'Warning' ? '⚠️ Warning' : 
+                           '⚠️ Suspicious'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="anomaly-details">
+                      <p><strong>Trạng thái:</strong> {anomaly.currentStatus}</p>
+                      <p><strong>Số anomalies:</strong> {anomaly.anomalyCount}</p>
+                      {anomaly.anomalies && anomaly.anomalies.length > 0 && (
+                        <div style={{marginTop: '1rem'}}>
+                          <strong>Chi tiết:</strong>
+                          {anomaly.anomalies.map((a, idx) => (
+                            <div key={idx} className={`anomaly-item anomaly-${a.severity}`} style={{marginTop: '0.5rem'}}>
+                              <span className="anomaly-type">{a.type}</span>
+                              <span className="anomaly-message">{a.message}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : activeTab === 'verifications' ? (
           <div className="verifications-section">
             <div className="section-header">
               <h2>Danh Sách Đơn Đăng Ký Xác Thực Producer</h2>

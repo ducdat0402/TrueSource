@@ -62,9 +62,11 @@ async function traceProduct(req, res) {
       
       product = await Product.create({
         id: numericId,
-        origin: history.origin,
+        origin: history.origin || 'Unknown',
+        productName: `Sản phẩm #${numericId}`, // Default product name when creating from contract
+        category: 'HÀNG TIÊU DÙNG', // Default category when creating from contract
         createdAt: Date.now() / 1000, // Convert to seconds
-        currentStatus: history.currentStatus,
+        currentStatus: history.currentStatus || 'Created',
         qrCodeHash: decodedId,
         producerAddress: producerAddress.toLowerCase(),
         events: history.events || []
@@ -121,6 +123,71 @@ async function traceProduct(req, res) {
         history: null,
         blockchainInfo: null
       });
+    }
+
+    // Tự động trigger AI analysis nếu chưa có
+    if (product && (!product.aiResults || Object.keys(product.aiResults).length === 0)) {
+      // Chỉ trigger nếu có ít nhất 2 events
+      if (product.events && product.events.length >= 2) {
+        try {
+          const aiService = require('../services/aiService');
+          
+          // Thử đợi AI analysis tối đa 3 giây (để user thấy kết quả ngay)
+          const aiAnalysisPromise = aiService.analyzeProduct(product);
+          const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 3000));
+          
+          const aiResult = await Promise.race([aiAnalysisPromise, timeoutPromise]);
+          
+          if (aiResult) {
+            // AI analysis hoàn thành trong 3 giây, lưu và trả về ngay
+            if (!product.aiResults) {
+              product.aiResults = {};
+            }
+            const analysisKey = Date.now().toString();
+            product.aiResults[analysisKey] = aiResult;
+            await product.save();
+            console.log(`✅ [Auto AI] Đã tự động phân tích sản phẩm #${product.id} (trong thời gian chờ)`);
+            
+            // Emit Socket.io event
+            const app = require('../app');
+            if (app.io) {
+              app.io.emit('ai-analysis-completed', {
+                productId: product.id,
+                aiResult: aiResult
+              });
+            }
+          } else {
+            // AI analysis chưa xong trong 3 giây, chạy async
+            console.log(`⏳ [Auto AI] Đang phân tích sản phẩm #${product.id} (async)...`);
+            aiAnalysisPromise.then(async (aiResult) => {
+              try {
+                if (!product.aiResults) {
+                  product.aiResults = {};
+                }
+                const analysisKey = Date.now().toString();
+                product.aiResults[analysisKey] = aiResult;
+                await product.save();
+                console.log(`✅ [Auto AI] Đã tự động phân tích sản phẩm #${product.id} (async)`);
+                
+                // Emit Socket.io event để frontend update
+                const app = require('../app');
+                if (app.io) {
+                  app.io.emit('ai-analysis-completed', {
+                    productId: product.id,
+                    aiResult: aiResult
+                  });
+                }
+              } catch (saveErr) {
+                console.error('Error saving AI result:', saveErr);
+              }
+            }).catch(err => {
+              console.error('Error in auto AI analysis:', err);
+            });
+          }
+        } catch (err) {
+          console.error('Error triggering AI analysis:', err);
+        }
+      }
     }
 
     res.json({

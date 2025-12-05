@@ -11,6 +11,11 @@ const fs = require('fs');
 const Product = require('./models/productModel');
 const aiService = require('./services/aiService');
 const rabbitmqService = require('./services/rabbitmqService');
+
+// Initialize AI services khi app khởi động
+aiService.initializeAIServices().catch(err => {
+  console.error('Failed to initialize AI services:', err);
+});
 const { authenticate, authorize, requireVerifiedProducer } = require('./middleware/authMiddleware');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');

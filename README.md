@@ -157,7 +157,41 @@ npm run build:backend
 ```
 
 ### Chạy với Docker
+
+**Xem hướng dẫn chi tiết tại:** [`docker/README.md`](docker/README.md)
+
+**Quick Start:**
 ```bash
-docker-compose up
+# 1. Tạo file .env cho backend (từ .env.example)
+cd backend
+cp .env.example .env
+# Sau đó chỉnh sửa các giá trị trong .env
+
+# 2. Chạy Docker Compose
+docker-compose -f docker/docker-compose.yml up -d
+
+# 3. Truy cập ứng dụng
+# Frontend: http://localhost:3001
+# Backend API: http://localhost:3000
+# RabbitMQ Management: http://localhost:15672 (admin/password)
 ```
-└── .env.example  # Template env vars
+
+**Các lệnh Docker thường dùng:**
+```bash
+# Xem logs
+docker-compose -f docker/docker-compose.yml logs -f
+
+# Dừng services
+docker-compose -f docker/docker-compose.yml stop
+
+# Khởi động lại
+docker-compose -f docker/docker-compose.yml start
+
+# Dừng và xóa containers
+docker-compose -f docker/docker-compose.yml down
+
+# Rebuild khi code thay đổi
+docker-compose -f docker/docker-compose.yml up -d --build
+```
+
+└── .env.example  # Template env vars (xem backend/.env.example)

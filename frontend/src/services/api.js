@@ -49,8 +49,15 @@ export const adminAPI = {
     api.post(`/admin/users/${userId}/revoke-role`),
   approveProduct: (id, status) => 
     api.post(`/admin/products/${id}/approve`, { status }),
-  triggerAI: (id) => 
-    api.post(`/admin/products/${id}/trigger-ai`),
+  triggerAIAnalysis: (id) => 
+    api.post(`/admin/analyze-product/${id}`),
+  getAnomalies: (page = 1, limit = 20, severity = '') => {
+    const params = new URLSearchParams({ page, limit });
+    if (severity) params.append('severity', severity);
+    return api.get(`/admin/anomalies?${params.toString()}`);
+  },
+  getAIResults: (page = 1, limit = 10) => 
+    api.get(`/admin/ai-results?page=${page}&limit=${limit}`),
   getAnalytics: () => 
     api.get('/admin/analytics'),
   getCharts: () => 

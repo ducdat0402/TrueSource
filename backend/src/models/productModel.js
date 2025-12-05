@@ -22,11 +22,13 @@ const ProductSchema = new mongoose.Schema({
   },
   productName: {
     type: String,
-    required: true
+    required: false,
+    default: 'Sản phẩm chưa đặt tên'
   },
   category: {
     type: String,
-    required: true
+    required: false,
+    default: 'HÀNG TIÊU DÙNG'
   },
   createdAt: {
     type: Number,

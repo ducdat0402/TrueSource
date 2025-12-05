@@ -46,7 +46,10 @@ function Home() {
 
   // Function to load product by QR code or ID
   const loadProduct = async (qrValue) => {
-    if (!qrValue || !qrValue.trim()) {
+    // Convert to string if it's a number
+    const qrString = qrValue ? String(qrValue) : '';
+    
+    if (!qrString || !qrString.trim()) {
       setError('Vui lòng nhập mã QR hoặc Product ID');
       return;
     }
@@ -60,12 +63,12 @@ function Home() {
       // Try to get product by QR hash or ID
       let productData = null;
       try {
-        const response = await productAPI.getById(qrValue);
+        const response = await productAPI.getById(qrString);
         productData = response.data;
       } catch (err) {
         // Try trace endpoint
         try {
-          const encodedValue = encodeURIComponent(qrValue);
+          const encodedValue = encodeURIComponent(qrString);
           const traceResponse = await fetch(`http://localhost:3000/user/trace/${encodedValue}`);
           const traceData = await traceResponse.json();
           
@@ -410,26 +413,115 @@ function Home() {
               </div>
             </div>
 
-            {/* AI Analysis Results */}
-            {product.aiResults && Object.keys(product.aiResults).length > 0 && (
+            {/* AI Analysis Results với Anomaly Detection */}
+            {product.aiResults && Object.keys(product.aiResults).length > 0 ? (
               <div className="ai-results-section">
-                <h3>Kết Quả Phân Tích AI</h3>
-                {Object.entries(product.aiResults).map(([key, result]) => (
+                <h3>🔍 Phân Tích AI & Phát Hiện Bất Thường</h3>
+                {Object.entries(product.aiResults)
+                  .sort(([a], [b]) => (product.aiResults[b]?.timestamp || 0) - (product.aiResults[a]?.timestamp || 0))
+                  .slice(0, 1)
+                  .map(([key, result]) => (
                   <div key={key} className="ai-result-card">
                     <div className="ai-header">
                       <span className={`authenticity-badge authenticity-${result.authenticity?.toLowerCase()}`}>
-                        {result.authenticity === 'Verified' ? 'Đã xác thực' : result.authenticity === 'Suspicious' ? 'Đáng nghi' : result.authenticity}
+                        {result.authenticity === 'Verified' ? '✅ Đã xác thực' : 
+                         result.authenticity === 'Suspicious' ? '⚠️ Đáng nghi' : 
+                         result.authenticity === 'Warning' ? '⚠️ Cảnh báo' : result.authenticity}
                       </span>
+                      <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
+                        {result.anomalyScore !== undefined && (
+                          <span className={`anomaly-score anomaly-${result.severity || 'low'}`}>
+                            Điểm bất thường: {result.anomalyScore}/100
+                          </span>
+                        )}
                       <span className="confidence">Độ tin cậy: {result.confidence}%</span>
+                      </div>
                     </div>
                     <p className="ai-analysis">{result.analysis}</p>
+                    
+                    {/* Hiển thị chi tiết anomalies */}
+                    {result.anomalies && result.anomalies.length > 0 && (
+                      <div className="anomalies-list">
+                        <h4 style={{marginTop: '1rem', marginBottom: '0.5rem', color: '#ff6b6b'}}>
+                          ⚠️ Dấu hiệu bất thường phát hiện:
+                        </h4>
+                        {result.anomalies.slice(0, 5).map((anomaly, idx) => (
+                          <div key={idx} className={`anomaly-item anomaly-${anomaly.severity}`}>
+                            <span className="anomaly-type">{anomaly.type}</span>
+                            <span className="anomaly-message">{anomaly.message}</span>
+                          </div>
+                        ))}
+                        {result.anomalies.length > 5 && (
+                          <p style={{marginTop: '0.5rem', fontSize: '0.9em', color: 'rgba(255, 255, 255, 0.7)'}}>
+                            ... và {result.anomalies.length - 5} dấu hiệu khác
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Chi tiết phân tích */}
+                    {result.details && (
+                      <div className="analysis-details" style={{marginTop: '1rem', padding: '1rem', background: 'rgba(0, 150, 255, 0.1)', borderRadius: '8px'}}>
+                        <h4 style={{marginBottom: '0.5rem', fontSize: '0.95em'}}>Chi tiết phân tích:</h4>
+                        <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', fontSize: '0.85em'}}>
+                          <div>
+                            <strong>Thời gian:</strong> {result.details.timeAnalysis?.anomalyCount || 0} bất thường
+                            <br/>
+                            <span style={{color: 'rgba(255, 255, 255, 0.7)'}}>Điểm: {result.details.timeAnalysis?.score || 0}/100</span>
+                          </div>
+                          <div>
+                            <strong>Trạng thái:</strong> {result.details.statusAnalysis?.anomalyCount || 0} bất thường
+                            <br/>
+                            <span style={{color: 'rgba(255, 255, 255, 0.7)'}}>Điểm: {result.details.statusAnalysis?.score || 0}/100</span>
+                          </div>
+                          <div>
+                            <strong>Địa điểm:</strong> {result.details.locationAnalysis?.anomalyCount || 0} bất thường
+                            <br/>
+                            <span style={{color: 'rgba(255, 255, 255, 0.7)'}}>Điểm: {result.details.locationAnalysis?.score || 0}/100</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
                     <p className="ai-timestamp">
                       Phân tích lúc: {new Date(result.timestamp).toLocaleString('vi-VN')}
                     </p>
                   </div>
                 ))}
               </div>
-            )}
+            ) : product.events && product.events.length >= 2 ? (
+              <div className="ai-results-section">
+                <h3>🔍 Phân Tích AI & Phát Hiện Bất Thường</h3>
+                <div className="ai-loading-message" style={{
+                  padding: '2rem',
+                  textAlign: 'center',
+                  background: 'rgba(0, 150, 255, 0.1)',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(0, 150, 255, 0.3)'
+                }}>
+                  <p style={{color: '#00d4ff', marginBottom: '1rem'}}>
+                    ⏳ Đang tự động phân tích AI cho sản phẩm này...
+                  </p>
+                  <p style={{color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.9em', marginBottom: '1rem'}}>
+                    Hệ thống đang phân tích các events để phát hiện bất thường. Vui lòng đợi vài giây.
+                  </p>
+                  <button 
+                    onClick={() => loadProduct(String(product.id || qrCode || ''))}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: 'linear-gradient(135deg, #0096ff 0%, #0066ff 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: '600'
+                    }}
+                  >
+                    🔄 Làm mới để xem kết quả
+                  </button>
+                </div>
+              </div>
+            ) : null}
 
             <button 
               className="scan-again-btn"

@@ -23,6 +23,8 @@ router.get('/products/export', adminController.exportProducts);
 
 // AI Management
 router.post('/analyze-product/:id', adminController.triggerAIAnalysis);
+router.post('/ai/retrain', adminController.retrainMLModel);
+router.get('/anomalies', adminController.getAnomalies);
 router.get('/ai-results', adminController.getAIResults);
 
 // System Monitoring
