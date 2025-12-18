@@ -696,5 +696,18 @@ if (process.env.NODE_ENV !== 'test') {
     } else {
       console.log('Account: Not configured');
     }
+  }).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`\n❌ Port ${port} is already in use.`);
+      console.error(`Please either:`);
+      console.error(`  1. Stop the process using port ${port}`);
+      console.error(`  2. Or change the PORT environment variable\n`);
+      console.error(`To find and kill the process on Windows:`);
+      console.error(`  netstat -ano | findstr :${port}`);
+      console.error(`  taskkill /PID <PID> /F\n`);
+    } else {
+      console.error('Server error:', err);
+    }
+    process.exit(1);
   });
 }

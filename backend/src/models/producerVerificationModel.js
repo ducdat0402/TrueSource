@@ -71,9 +71,8 @@ const ProducerVerificationSchema = new mongoose.Schema({
 });
 
 // Index để query nhanh
-ProducerVerificationSchema.index({ userId: 1 });
+// Note: userId and taxId already have indexes from unique: true, so we only add status index
 ProducerVerificationSchema.index({ status: 1 });
-ProducerVerificationSchema.index({ taxId: 1 });
 
 module.exports = mongoose.model('ProducerVerification', ProducerVerificationSchema);
 
