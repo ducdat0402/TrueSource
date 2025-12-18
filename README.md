@@ -123,6 +123,75 @@ TrueSource/  # Root folder dự án
 ├── ci-cd/  # CI/CD configs (GitHub Actions)
 │   └── .github/workflows/  # Workflows (ví dụ: build-deploy.yml cho test/build/deploy)
 ├── .gitignore  # Ignore node_modules, .env, build files
-├── package.json  # Root dependencies (nếu dùng Lerna/Yarn Workspaces cho monorepo)
+├── package.json  # Root dependencies (sử dụng npm cho monorepo)
 ├── README.md  # Tổng quan dự án, cách run (docker-compose up)
-└── .env.example  # Template env vars
+
+## Cách sử dụng
+
+### Cài đặt dependencies
+```bash
+# Cài đặt tất cả dependencies cho root, backend và frontend
+npm run install:all
+
+# Hoặc cài đặt từng phần riêng lẻ
+npm install                    # Root dependencies
+cd backend && npm install     # Backend dependencies  
+cd frontend && npm install    # Frontend dependencies
+```
+
+### Chạy ứng dụng
+```bash
+# Chạy backend (port 5000)
+npm run start:backend
+
+# Chạy frontend (port 3000) 
+npm run start:frontend
+
+# Chạy tests
+npm run test:backend
+npm run test:frontend
+
+# Build cho production
+npm run build:frontend
+npm run build:backend
+```
+
+### Chạy với Docker
+
+**Xem hướng dẫn chi tiết tại:** [`docker/README.md`](docker/README.md)
+
+**Quick Start:**
+```bash
+# 1. Tạo file .env cho backend (từ .env.example)
+cd backend
+cp .env.example .env
+# Sau đó chỉnh sửa các giá trị trong .env
+
+# 2. Chạy Docker Compose
+docker-compose -f docker/docker-compose.yml up -d
+
+# 3. Truy cập ứng dụng
+# Frontend: http://localhost:3001
+# Backend API: http://localhost:3000
+# RabbitMQ Management: http://localhost:15672 (admin/password)
+```
+
+**Các lệnh Docker thường dùng:**
+```bash
+# Xem logs
+docker-compose -f docker/docker-compose.yml logs -f
+
+# Dừng services
+docker-compose -f docker/docker-compose.yml stop
+
+# Khởi động lại
+docker-compose -f docker/docker-compose.yml start
+
+# Dừng và xóa containers
+docker-compose -f docker/docker-compose.yml down
+
+# Rebuild khi code thay đổi
+docker-compose -f docker/docker-compose.yml up -d --build
+```
+
+└── .env.example  # Template env vars (xem backend/.env.example)
